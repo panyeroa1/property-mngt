@@ -29,6 +29,26 @@ function bytesToBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
+function playPing() {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    
+    // Subtle "ping" sound (high pitch, quick decay)
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(800, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(500, ctx.currentTime + 0.1);
+    
+    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+    
+    osc.start();
+    osc.stop(ctx.currentTime + 0.15);
+}
+
 // --- Tool Definition ---
 const updateFiltersTool: FunctionDeclaration = {
   name: 'updateSearchFilters',
@@ -88,12 +108,18 @@ const App: React.FC = () => {
   const [filters, setFilters] = useState<ApartmentSearchFilters>({ sortBy: 'default' });
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [userTranscript, setUserTranscript] = useState(''); 
-  const [assistantReply, setAssistantReply] = useState('Tap the mic to start your search.');
+  const [assistantReply, setAssistantReply] = useState('Tap the orb to start.');
   
   // Live API State
   const [isLiveActive, setIsLiveActive] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle');
   const [volume, setVolume] = useState(0);
+
+  // --- Draggable Orb State ---
+  // Initial position: Bottom Right
+  const [orbPosition, setOrbPosition] = useState({ x: window.innerWidth - 100, y: window.innerHeight - 150 });
+  const isDragging = useRef(false);
+  const dragOffset = useRef({ x: 0, y: 0 });
 
   // --- Refs ---
   const inputAudioContextRef = useRef<AudioContext | null>(null);
@@ -344,23 +370,31 @@ const App: React.FC = () => {
      }
   };
 
-  const handleTextSearch = async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!userTranscript.trim()) return;
-      try {
-         const nluResult = await parseUserUtterance(userTranscript, filters, listings);
-         if (nluResult.intent === 'ASK_DETAILS' && nluResult.targetListingId) {
-            const target = listings.find(l => l.id === nluResult.targetListingId);
-            if (target) setSelectedListing(target);
-         } else {
-             const newFilters = { ...filters, ...nluResult.filters };
-             setFilters(newFilters);
-             await loadListings(newFilters);
-         }
-         setAssistantReply(nluResult.assistantReply);
-         setUserTranscript('');
-      } catch(err) {
-          console.error(err);
+  // --- Drag Handlers ---
+  const handlePointerDown = (e: React.PointerEvent) => {
+      isDragging.current = false;
+      e.currentTarget.setPointerCapture(e.pointerId);
+      dragOffset.current = {
+          x: e.clientX - orbPosition.x,
+          y: e.clientY - orbPosition.y
+      };
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+      if (e.buttons === 0) return; // Only track when pressed
+      const newX = e.clientX - dragOffset.current.x;
+      const newY = e.clientY - dragOffset.current.y;
+      
+      if (Math.abs(newX - orbPosition.x) > 5 || Math.abs(newY - orbPosition.y) > 5) {
+          isDragging.current = true;
+      }
+      setOrbPosition({ x: newX, y: newY });
+  };
+  
+  const handleOrbTap = () => {
+      if (!isDragging.current) {
+          playPing();
+          handleMicClick();
       }
   };
 
@@ -413,33 +447,6 @@ const App: React.FC = () => {
       {/* Main Content Area */}
       <main className="flex-grow flex flex-col pt-8 pb-32 md:pb-10 relative max-w-[1800px] mx-auto w-full mb-16 md:mb-0">
             <>
-                {/* Assistant Bubble */}
-                <div className="max-w-xl mx-auto mb-8 px-6 text-center sticky top-24 z-20 pointer-events-none">
-                    <div className={`
-                        inline-block bg-white/95 backdrop-blur-md border shadow-lg rounded-full px-8 py-3 text-slate-700 text-lg font-medium animate-fade-in relative overflow-hidden transition-all duration-300 pointer-events-auto
-                        ${isLiveActive ? 'border-rose-400 shadow-rose-100 scale-105 ring-4 ring-rose-50' : 'border-slate-200'}
-                    `}>
-                        {isLiveActive ? (
-                        <div className="flex items-center gap-3">
-                             <div className="flex items-center justify-center gap-1 h-6">
-                                {[...Array(4)].map((_, i) => (
-                                    <div 
-                                        key={i} 
-                                        className="w-1 bg-rose-500 rounded-full transition-all duration-75"
-                                        style={{ 
-                                            height: `${Math.max(10, Math.min(100, Math.random() * 60 + volume * 200))}%`,
-                                        }}
-                                    ></div>
-                                ))}
-                            </div>
-                            <p className="text-rose-600 font-medium text-sm animate-pulse whitespace-nowrap">{assistantReply}</p>
-                        </div>
-                        ) : (
-                            assistantReply
-                        )}
-                    </div>
-                </div>
-
                 {/* Filters Row - Functional */}
                 <div className="flex gap-4 overflow-x-auto px-6 mb-6 pb-2 scrollbar-hide items-center">
                     {PROPERTY_TYPES.map((pt) => {
@@ -531,8 +538,72 @@ const App: React.FC = () => {
             </>
       </main>
 
+      {/* Draggable Floating Orb Visualizer */}
+      <div 
+          className="fixed z-50 touch-none cursor-grab active:cursor-grabbing group"
+          style={{ 
+              left: orbPosition.x, 
+              top: orbPosition.y,
+              transform: 'translate(-50%, -50%)'
+          }}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handleOrbTap}
+      >
+          {/* Tooltip */}
+          {isLiveActive && (
+             <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl opacity-90 pointer-events-none animate-in fade-in slide-in-from-bottom-2">
+                 {assistantReply}
+                 <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900"></div>
+             </div>
+          )}
+
+          <div className="relative flex items-center justify-center w-16 h-16">
+              {/* Idle Pulse / Active Ripple */}
+              <div className={`
+                 absolute inset-0 rounded-full opacity-30
+                 bg-gradient-to-tr from-rose-400 to-fuchsia-500
+                 ${isLiveActive ? 'animate-none' : 'animate-ping'}
+              `} style={{
+                  transform: isLiveActive ? `scale(${1 + volume * 2})` : 'scale(1)'
+              }}></div>
+              
+              {/* Connecting Ring */}
+              {connectionStatus === 'connecting' && (
+                  <div className="absolute inset-[-4px] rounded-full border-2 border-rose-500 border-dashed animate-spin"></div>
+              )}
+
+              {/* Core Orb */}
+              <div className={`
+                 w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300
+                 bg-gradient-to-br from-rose-500 to-fuchsia-600 border border-white/20
+                 ${isLiveActive ? 'scale-110' : 'hover:scale-105'}
+              `}>
+                  {isLiveActive ? (
+                      // Visualizer Waveform
+                      <div className="flex items-center justify-center gap-1 h-8">
+                           {[...Array(4)].map((_, i) => (
+                               <div 
+                                   key={i} 
+                                   className="w-1.5 bg-white rounded-full transition-all duration-75"
+                                   style={{ 
+                                       height: `${Math.max(20, Math.min(100, Math.random() * 40 + volume * 200))}%`,
+                                   }}
+                               ></div>
+                           ))}
+                      </div>
+                  ) : (
+                      // Idle Mic Icon
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-8 h-8 text-white">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
+                      </svg>
+                  )}
+              </div>
+          </div>
+      </div>
+
       {/* Mobile Bottom Navigation (5 Icons) */}
-      <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 z-50 md:hidden flex justify-around items-center py-2 pb-safe shadow-[0_-2px_10px_rgba(0,0,0,0.05)] h-[65px]">
+      <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 z-40 md:hidden flex justify-around items-center py-2 pb-safe shadow-[0_-2px_10px_rgba(0,0,0,0.05)] h-[65px]">
             <NavIcon 
                 active={true}
                 icon={<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>}
@@ -555,39 +626,6 @@ const App: React.FC = () => {
                 label="Profile" 
                 onClick={handleLogin}
             />
-      </div>
-
-      {/* Floating Action Button for Mic - Raised for Bottom Nav on Mobile */}
-      <div className="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-2">
-            <button 
-                onClick={handleMicClick}
-                className={`
-                    relative w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 shadow-xl
-                    ${isLiveActive 
-                        ? 'bg-slate-900 scale-110' 
-                        : 'bg-rose-500 hover:bg-rose-600 hover:scale-105'
-                    }
-                `}
-            >
-                {isLiveActive ? (
-                    <div className="flex gap-1 items-end h-6">
-                         {[...Array(3)].map((_, i) => (
-                            <div 
-                                key={i} 
-                                className="w-1 bg-white rounded-full animate-bounce" 
-                                style={{ animationDelay: `${i * 0.1}s`, height: '100%' }}
-                            ></div>
-                        ))}
-                    </div>
-                ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-8 h-8 text-white">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
-                    </svg>
-                )}
-            </button>
-            <span className="bg-slate-900 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg opacity-90">
-                 {isLiveActive ? 'Tap to Stop' : 'Ask Homie'}
-            </span>
       </div>
 
       {selectedListing && (
