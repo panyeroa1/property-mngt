@@ -1,13 +1,17 @@
 import { ApartmentSearchFilters, Listing, User, MaintenanceRequest, MaintenanceStatus, UserRole } from '../types';
 
-// Updated listings to match the bug report screenshots for proper testing
+// Updated listings with realistic Belgian data, new categories, and multiple images
 let MOCK_LISTINGS: Listing[] = [
   {
     id: '1',
     name: 'Industrial Loft near Korenmarkt',
     address: 'Korenmarkt 12, 9000 Ghent',
     price: 950,
-    imageUrls: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80'],
+    imageUrls: [
+        'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1502005229766-31bf0bab5245?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1484154218962-a1c002085d2f?auto=format&fit=crop&w=800&q=80'
+    ],
     energyClass: 'A',
     type: 'loft',
     size: 85,
@@ -21,7 +25,11 @@ let MOCK_LISTINGS: Listing[] = [
     name: 'Classic Townhouse Oudburg',
     address: 'Oudburg 24, 9000 Ghent',
     price: 1450,
-    imageUrls: ['https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=800&q=80'],
+    imageUrls: [
+        'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1556912172-45b7abe8b7e1?auto=format&fit=crop&w=800&q=80'
+    ],
     energyClass: 'B',
     type: 'house',
     size: 160,
@@ -35,9 +43,13 @@ let MOCK_LISTINGS: Listing[] = [
     name: 'Modern Villa with Garden',
     address: 'Veldstraat 45, 2060 Antwerp',
     price: 1350,
-    imageUrls: ['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'],
+    imageUrls: [
+        'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?auto=format&fit=crop&w=800&q=80'
+    ],
     energyClass: 'A',
-    type: 'house', // Displayed as House in screenshots, but looks like a villa
+    type: 'house', 
     size: 160,
     description: 'Modern detached home with large garden on the outskirts of Antwerp.',
     bedrooms: 3,
@@ -48,38 +60,186 @@ let MOCK_LISTINGS: Listing[] = [
     name: 'Luxury Apartment Sablon',
     address: 'Rue de la Regence 36, 1000 Brussels',
     price: 1800,
-    imageUrls: ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80'],
+    imageUrls: [
+        'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1522771753035-4a5042305a63?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1536376072261-38c75010e6c9?auto=format&fit=crop&w=800&q=80'
+    ],
     energyClass: 'C',
     type: 'apartment',
     size: 110,
-    description: 'High-end finish, parquet floors, and view of the conservatory.',
+    description: 'High-end finish, parquet floors, and view of the conservatory in chic Sablon.',
     bedrooms: 2,
     petsAllowed: false
   },
   {
     id: '5',
     name: 'Cozy Studio near Station',
-    address: 'Stationsstraat 8, Ieper',
+    address: 'Stationsstraat 8, 8900 Ieper',
     price: 550,
-    imageUrls: ['https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=800&q=80'],
+    imageUrls: [
+        'https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1533633917736-54ac886235b8?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=800&q=80'
+    ],
     energyClass: 'C',
     type: 'studio',
     size: 40,
-    description: 'Perfect for students or singles. Close to public transport.',
+    description: 'Perfect for students or singles. Close to public transport and Menin Gate.',
     bedrooms: 0,
     petsAllowed: false
   },
   {
     id: '6',
-    name: 'Renovated Villa',
-    address: 'Kasteeldreef 5, 8000 Brugge',
-    price: 2100,
-    imageUrls: ['https://images.unsplash.com/photo-1600596542815-60c37c663d12?auto=format&fit=crop&w=800&q=80'],
-    energyClass: 'B',
+    name: 'Exclusive Villa Knokke-Heist',
+    address: 'Zoutelaan 120, 8300 Knokke-Heist',
+    price: 3500,
+    imageUrls: [
+        'https://images.unsplash.com/photo-1600596542815-60c37c663d12?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80'
+    ],
+    energyClass: 'A+',
     type: 'villa',
-    size: 220,
-    description: 'Exclusive living in a green environment.',
+    size: 350,
+    description: 'Luxurious villa steps away from the beach. Heated pool and smart home system.',
+    bedrooms: 5,
+    petsAllowed: true
+  },
+  {
+    id: '7',
+    name: 'Student Kot Leuven Center',
+    address: 'Naamsestraat 45, 3000 Leuven',
+    price: 450,
+    imageUrls: [
+        'https://images.unsplash.com/photo-1555854743-e3c2f6a58d63?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format&fit=crop&w=800&q=80'
+    ],
+    energyClass: 'B',
+    type: 'kot',
+    size: 18,
+    description: 'Modern student room with private sink. Shared kitchen and bathroom. High-speed internet.',
+    bedrooms: 1,
+    petsAllowed: false
+  },
+  {
+    id: '8',
+    name: 'Premium Student Kot Oude Markt',
+    address: 'Oude Markt 12, 3000 Leuven',
+    price: 520,
+    imageUrls: [
+        'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=800&q=80'
+    ],
+    energyClass: 'A',
+    type: 'kot',
+    size: 22,
+    description: 'Luxury student room with private shower. Located directly on the Oude Markt.',
+    bedrooms: 1,
+    petsAllowed: false
+  },
+  {
+    id: '9',
+    name: 'Skyline Penthouse Antwerp',
+    address: 'Frankrijklei 88, 2000 Antwerp',
+    price: 2800,
+    imageUrls: [
+        'https://images.unsplash.com/photo-1512918760532-3edbed1351c3?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1481437642641-2f0ae875f836?auto=format&fit=crop&w=800&q=80'
+    ],
+    energyClass: 'A',
+    type: 'penthouse',
+    size: 180,
+    description: 'Top floor penthouse with 360 views of Antwerp. Large terrace and private elevator access.',
+    bedrooms: 3,
+    petsAllowed: true
+  },
+  {
+    id: '10',
+    name: 'EU District Penthouse',
+    address: 'Rue de la Loi 200, 1000 Brussels',
+    price: 3200,
+    imageUrls: [
+        'https://images.unsplash.com/photo-1567496898669-ee935f5f647a?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1600607688969-a5bfcd646154?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1600607687644-c7171b42498b?auto=format&fit=crop&w=800&q=80'
+    ],
+    energyClass: 'B',
+    type: 'penthouse',
+    size: 200,
+    description: 'Spacious penthouse walking distance from European Commission. Concierge service included.',
     bedrooms: 4,
+    petsAllowed: true
+  },
+  {
+    id: '11',
+    name: 'Modern Duplex Ixelles',
+    address: 'Chaussée d\'Ixelles 150, 1050 Brussels',
+    price: 1600,
+    imageUrls: [
+        'https://images.unsplash.com/photo-1502005229766-31bf0bab5245?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1484154218962-a1c002085d2f?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1522771753035-4a5042305a63?auto=format&fit=crop&w=800&q=80'
+    ],
+    energyClass: 'B',
+    type: 'duplex',
+    size: 130,
+    description: 'Stylish duplex apartment with high ceilings near Place Flagey.',
+    bedrooms: 2,
+    petsAllowed: true
+  },
+  {
+    id: '12',
+    name: 'Riverside Duplex Liège',
+    address: 'Quai de la Boverie 10, 4020 Liège',
+    price: 1200,
+    imageUrls: [
+        'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80'
+    ],
+    energyClass: 'C',
+    type: 'duplex',
+    size: 115,
+    description: 'Charming duplex overlooking the Meuse river. Newly renovated kitchen.',
+    bedrooms: 2,
+    petsAllowed: false
+  },
+  {
+    id: '13',
+    name: 'Historic Cottage Bruges',
+    address: 'Begijnhof 12, 8000 Brugge',
+    price: 1550,
+    imageUrls: [
+        'https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=800&q=80'
+    ],
+    energyClass: 'D',
+    type: 'house',
+    size: 100,
+    description: 'Live in a fairytale cottage in the heart of Bruges. Quiet and picturesque.',
+    bedrooms: 2,
+    petsAllowed: false
+  },
+  {
+    id: '14',
+    name: 'Sunny Apartment Namur',
+    address: 'Rue de Fer 45, 5000 Namur',
+    price: 900,
+    imageUrls: [
+        'https://images.unsplash.com/photo-1460317442991-0ec209397118?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1560185127-6ed189bf02f4?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1484154218962-a1c002085d2f?auto=format&fit=crop&w=800&q=80'
+    ],
+    energyClass: 'B',
+    type: 'apartment',
+    size: 90,
+    description: 'Bright apartment in the center of Namur. Close to the Citadel.',
+    bedrooms: 2,
     petsAllowed: true
   }
 ];

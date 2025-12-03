@@ -36,12 +36,13 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onClick }) => {
           </svg>
         </button>
         
-        {/* Guest Favorite Badge Mock */}
-        {listing.energyClass === 'A+' && (
-             <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2 py-1 rounded-md text-[10px] md:text-xs font-bold text-slate-900 shadow-sm z-10">
-                Guest favorite
-             </div>
-        )}
+        {/* Energy Class Badge */}
+        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2 py-1 rounded-md text-[10px] md:text-xs font-bold text-slate-900 shadow-sm z-10 flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={`w-3 h-3 ${listing.energyClass.startsWith('A') ? 'text-green-600' : 'text-orange-500'}`}>
+              <path fillRule="evenodd" d="M14.615 1.595a.75.75 0 0 1 .359.852L12.982 9.75h7.268a.75.75 0 0 1 .548 1.262l-10.5 11.25a.75.75 0 0 1-1.272-.71l1.992-7.302H3.75a.75.75 0 0 1-.548-1.262l10.5-11.25a.75.75 0 0 1 .913-.143Z" clipRule="evenodd" />
+            </svg>
+            EPC {listing.energyClass}
+        </div>
       </div>
 
       <div className="flex flex-col gap-0.5">
@@ -56,7 +57,13 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onClick }) => {
         </div>
         
         <p className="text-sm md:text-[15px] text-slate-500 font-light truncate">Hosted by Eburon</p>
-        <p className="text-sm md:text-[15px] text-slate-500 font-light truncate hidden sm:block">{listing.size} m² • {listing.bedrooms} beds</p>
+        
+        {/* Detail Row (Bedrooms & Size) */}
+        <p className="text-sm md:text-[15px] text-slate-600 font-normal truncate flex items-center gap-2">
+            <span>{listing.bedrooms} beds</span>
+            <span className="text-slate-300">•</span>
+            <span>{listing.size} m²</span>
+        </p>
         
         <div className="mt-1 flex items-baseline gap-1">
              <span className="font-semibold text-slate-900 text-sm md:text-[15px]">€{listing.price}</span>

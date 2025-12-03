@@ -5,7 +5,7 @@ export interface Listing {
   price: number;
   imageUrls: string[];
   energyClass: string;
-  type: 'apartment' | 'house' | 'studio' | 'villa' | 'loft';
+  type: 'apartment' | 'house' | 'studio' | 'villa' | 'loft' | 'kot' | 'penthouse' | 'duplex';
   size: number;
   description: string;
   bedrooms: number;

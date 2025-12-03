@@ -36,13 +36,13 @@ const updateFiltersTool: FunctionDeclaration = {
   parameters: {
     type: Type.OBJECT,
     properties: {
-      city: { type: Type.STRING, description: 'City name (e.g. Ieper, Ghent, Antwerp)' },
+      city: { type: Type.STRING, description: 'City name (e.g. Ieper, Ghent, Antwerp, Brussels, Leuven)' },
       minPrice: { type: Type.NUMBER, description: 'Minimum price in Euros' },
       maxPrice: { type: Type.NUMBER, description: 'Maximum price in Euros' },
       minSize: { type: Type.NUMBER, description: 'Minimum size in square meters' },
       bedrooms: { type: Type.NUMBER, description: 'Number of bedrooms' },
       petsAllowed: { type: Type.BOOLEAN, description: 'Whether pets are required' },
-      type: { type: Type.STRING, enum: ['apartment', 'house', 'studio', 'villa', 'loft'], description: 'Type of property' },
+      type: { type: Type.STRING, enum: ['apartment', 'house', 'studio', 'villa', 'loft', 'kot', 'penthouse', 'duplex'], description: 'Type of property' },
       sortBy: { type: Type.STRING, enum: ["price_asc", "price_desc", "size", "default", "energy_asc", "energy_desc"] }
     },
   },
@@ -72,6 +72,9 @@ const PROPERTY_TYPES = [
     { id: 'studio', label: 'Studio', icon: <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" /></svg> },
     { id: 'villa', label: 'Villa', icon: <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-1.636M18.75 3l-1.5.545m0 6.205 3 1m1.5.5-1.5-.5M6.75 7.364V3h-3v18m3-13.636 10.5-3.819" /></svg> },
     { id: 'loft', label: 'Loft', icon: <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" /></svg> },
+    { id: 'kot', label: 'Kot', icon: <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" /></svg> },
+    { id: 'penthouse', label: 'Penthouse', icon: <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" /></svg> },
+    { id: 'duplex', label: 'Duplex', icon: <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-1.636M18.75 3l-1.5.545m0 6.205 3 1m1.5.5-1.5-.5M6.75 7.364V3h-3v18m3-13.636 10.5-3.819" /></svg> },
 ];
 
 const App: React.FC = () => {
@@ -422,7 +425,7 @@ const App: React.FC = () => {
                 onClick={() => setShowLogin(true)}
                 className="text-sm font-semibold text-slate-600 hover:bg-slate-50 px-4 py-2 rounded-full transition-colors"
             >
-                Log in
+                {currentUser ? currentUser.name : 'Log in'}
             </button>
         </div>
       </header>
@@ -646,6 +649,8 @@ const App: React.FC = () => {
       {selectedListing && (
           <ListingDetails 
               listing={selectedListing} 
+              currentUser={currentUser}
+              onLoginRequest={() => setShowLogin(true)}
               onClose={() => setSelectedListing(null)} 
           />
       )}

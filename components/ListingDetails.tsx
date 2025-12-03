@@ -1,12 +1,65 @@
-import React from 'react';
-import { Listing } from '../types';
+import React, { useState, useEffect } from 'react';
+import { Listing, User } from '../types';
 
 interface ListingDetailsProps {
   listing: Listing;
+  currentUser?: User | null;
   onClose: () => void;
+  onLoginRequest?: () => void;
 }
 
-const ListingDetails: React.FC<ListingDetailsProps> = ({ listing, onClose }) => {
+const ListingDetails: React.FC<ListingDetailsProps> = ({ listing, currentUser, onClose, onLoginRequest }) => {
+  // Default to 1 year lease for display purposes if no dates picked
+  const [checkIn, setCheckIn] = useState('');
+  const [checkOut, setCheckOut] = useState('');
+  const [guests, setGuests] = useState(1);
+  const [bookingStatus, setBookingStatus] = useState<'idle' | 'processing' | 'confirmed'>('idle');
+
+  // Calculate duration and price
+  const calculateTotals = () => {
+    if (!checkIn || !checkOut) {
+       // Default view: 12 months
+       return { duration: 12, unit: 'months', total: listing.price * 12 };
+    }
+    const start = new Date(checkIn);
+    const end = new Date(checkOut);
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+    
+    // Simple logic: if > 28 days, treat as months, else days
+    if (diffDays > 28) {
+        const months = Math.ceil(diffDays / 30);
+        return { duration: months, unit: 'months', total: listing.price * months };
+    } else {
+        // Daily rate approx
+        const dailyRate = Math.ceil(listing.price / 30);
+        return { duration: diffDays, unit: 'nights', total: dailyRate * diffDays };
+    }
+  };
+
+  const { duration, unit, total } = calculateTotals();
+
+  const handleReserve = async () => {
+    if (!currentUser) {
+        if (onLoginRequest) onLoginRequest();
+        return;
+    }
+    
+    if (!checkIn || !checkOut) {
+        // If they click reserve without dates, let's set some defaults or alert
+        // For UX, let's just highlight input, but for this demo, we'll simulate a 12 month default booking
+        // alert("Please select check-in and check-out dates.");
+        // return;
+    }
+
+    setBookingStatus('processing');
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    setBookingStatus('confirmed');
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-white overflow-y-auto animate-in slide-in-from-bottom duration-500 sm:animate-none sm:fade-in">
       {/* Header with Actions */}
@@ -43,16 +96,36 @@ const ListingDetails: React.FC<ListingDetailsProps> = ({ listing, onClose }) => 
             <p className="text-slate-800 text-sm md:text-base underline font-medium cursor-pointer">{listing.address}</p>
         </div>
 
-        {/* Hero Image - Airbnb Single/Grid */}
-        <div className="w-full aspect-video md:aspect-[2/1] bg-slate-200 rounded-xl overflow-hidden mb-8 relative">
-           <img 
-              src={listing.imageUrls[0]} 
-              alt={listing.name} 
-              className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-           />
-           <button className="absolute bottom-4 right-4 bg-white border border-slate-900 px-4 py-1.5 rounded-lg text-sm font-semibold shadow-sm hover:scale-105 transition-transform">
-               Show all photos
-           </button>
+        {/* Hero Image Grid (3 images) */}
+        <div className="w-full h-[300px] md:h-[400px] grid grid-cols-1 md:grid-cols-2 gap-2 rounded-xl overflow-hidden mb-8">
+            {/* Main Image (Left side on desktop, full on mobile) */}
+            <div className="relative h-full w-full">
+               <img 
+                  src={listing.imageUrls[0]} 
+                  alt={listing.name} 
+                  className="w-full h-full object-cover hover:brightness-95 transition-all cursor-pointer"
+               />
+            </div>
+            {/* Right Column (2 stacked images) - Hidden on Mobile */}
+            <div className="hidden md:grid grid-rows-2 gap-2 h-full">
+                <div className="relative h-full w-full">
+                    <img 
+                        src={listing.imageUrls[1] || listing.imageUrls[0]} 
+                        alt="Detail view 1" 
+                        className="w-full h-full object-cover hover:brightness-95 transition-all cursor-pointer"
+                    />
+                </div>
+                <div className="relative h-full w-full">
+                    <img 
+                        src={listing.imageUrls[2] || listing.imageUrls[0]} 
+                        alt="Detail view 2" 
+                        className="w-full h-full object-cover hover:brightness-95 transition-all cursor-pointer"
+                    />
+                     <button className="absolute bottom-4 right-4 bg-white border border-slate-900 px-4 py-1.5 rounded-lg text-sm font-semibold shadow-sm hover:scale-105 transition-transform z-10">
+                        Show all photos
+                     </button>
+                </div>
+            </div>
         </div>
 
         <div className="flex flex-col md:flex-row gap-12">
@@ -124,49 +197,104 @@ const ListingDetails: React.FC<ListingDetailsProps> = ({ listing, onClose }) => 
             {/* Right Column: Floating Reservation Card */}
             <div className="w-full md:w-1/3 relative hidden md:block">
                  <div className="sticky top-28 border border-gray-200 shadow-xl rounded-xl p-6 bg-white">
-                      <div className="flex justify-between items-baseline mb-4">
-                          <div className="flex items-baseline gap-1">
-                              <span className="text-2xl font-bold text-slate-900">€{listing.price}</span>
-                              <span className="text-slate-500 font-light"> month</span>
+                      {bookingStatus === 'confirmed' ? (
+                          <div className="flex flex-col items-center py-10 animate-in fade-in zoom-in">
+                              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-8 h-8 text-green-600">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                  </svg>
+                              </div>
+                              <h3 className="text-xl font-bold text-slate-900 mb-2">Reserved!</h3>
+                              <p className="text-center text-slate-500 mb-6">Your request has been sent to the owner.</p>
+                              <button onClick={onClose} className="w-full bg-slate-900 text-white font-bold py-3 rounded-lg hover:bg-slate-800 transition-colors">
+                                  Done
+                              </button>
                           </div>
-                          <div className="text-sm text-slate-700 underline font-medium">12 reviews</div>
-                      </div>
+                      ) : (
+                        <>
+                          <div className="flex justify-between items-baseline mb-4">
+                              <div className="flex items-baseline gap-1">
+                                  <span className="text-2xl font-bold text-slate-900">€{listing.price}</span>
+                                  <span className="text-slate-500 font-light"> month</span>
+                              </div>
+                              <div className="text-sm text-slate-700 underline font-medium">12 reviews</div>
+                          </div>
 
-                      <div className="border border-gray-400 rounded-lg mb-4 overflow-hidden">
-                           <div className="flex border-b border-gray-400">
-                               <div className="flex-1 p-2 border-r border-gray-400">
-                                   <label className="block text-[10px] font-bold uppercase text-slate-800">Check-in</label>
-                                   <div className="text-sm text-slate-600">Add date</div>
-                               </div>
-                               <div className="flex-1 p-2">
-                                   <label className="block text-[10px] font-bold uppercase text-slate-800">Check-out</label>
-                                   <div className="text-sm text-slate-600">Add date</div>
-                               </div>
-                           </div>
-                           <div className="p-2">
-                               <label className="block text-[10px] font-bold uppercase text-slate-800">Guests</label>
-                               <div className="text-sm text-slate-600">1 guest</div>
-                           </div>
-                      </div>
+                          <div className="border border-gray-400 rounded-lg mb-4 overflow-hidden">
+                              <div className="flex border-b border-gray-400">
+                                  <div className="flex-1 p-2 border-r border-gray-400 bg-white">
+                                      <label className="block text-[10px] font-bold uppercase text-slate-800 mb-1">Check-in</label>
+                                      <input 
+                                          type="date" 
+                                          value={checkIn}
+                                          onChange={e => setCheckIn(e.target.value)}
+                                          className="w-full text-sm outline-none bg-transparent p-0 text-slate-700"
+                                      />
+                                  </div>
+                                  <div className="flex-1 p-2 bg-white">
+                                      <label className="block text-[10px] font-bold uppercase text-slate-800 mb-1">Check-out</label>
+                                      <input 
+                                          type="date" 
+                                          value={checkOut}
+                                          onChange={e => setCheckOut(e.target.value)}
+                                          className="w-full text-sm outline-none bg-transparent p-0 text-slate-700"
+                                      />
+                                  </div>
+                              </div>
+                              <div className="p-2 bg-white">
+                                  <label className="block text-[10px] font-bold uppercase text-slate-800 mb-1">Guests</label>
+                                  <select 
+                                      value={guests} 
+                                      onChange={e => setGuests(Number(e.target.value))}
+                                      className="w-full text-sm outline-none bg-transparent p-0 text-slate-700"
+                                  >
+                                      <option value={1}>1 guest</option>
+                                      <option value={2}>2 guests</option>
+                                      <option value={3}>3 guests</option>
+                                      <option value={4}>4 guests</option>
+                                  </select>
+                              </div>
+                          </div>
 
-                      <button className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 rounded-lg transition-colors mb-4">
-                          Reserve
-                      </button>
+                          <button 
+                              onClick={handleReserve}
+                              disabled={bookingStatus === 'processing'}
+                              className={`w-full font-bold py-3 rounded-lg transition-all mb-4 flex justify-center items-center gap-2
+                                ${currentUser 
+                                    ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-md hover:shadow-lg' 
+                                    : 'bg-slate-900 hover:bg-slate-800 text-white'
+                                }
+                                ${bookingStatus === 'processing' ? 'opacity-70 cursor-not-allowed' : ''}
+                              `}
+                          >
+                              {bookingStatus === 'processing' ? (
+                                  <>
+                                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                      Processing...
+                                  </>
+                              ) : !currentUser ? (
+                                  'Log in to Reserve'
+                              ) : (
+                                  'Reserve'
+                              )}
+                          </button>
 
-                      <p className="text-center text-xs text-slate-500 mb-4">You won't be charged yet</p>
+                          <p className="text-center text-xs text-slate-500 mb-4">You won't be charged yet</p>
 
-                      <div className="flex justify-between text-slate-600 text-base mb-2">
-                          <span className="underline">€{listing.price} x 12 months</span>
-                          <span>€{listing.price * 12}</span>
-                      </div>
-                      <div className="flex justify-between text-slate-600 text-base mb-4 pb-4 border-b border-gray-200">
-                          <span className="underline">Service fee</span>
-                          <span>€0</span>
-                      </div>
-                      <div className="flex justify-between text-slate-900 font-bold text-lg">
-                          <span>Total</span>
-                          <span>€{listing.price * 12}</span>
-                      </div>
+                          <div className="flex justify-between text-slate-600 text-base mb-2">
+                              <span className="underline">€{listing.price} x {duration} {unit}</span>
+                              <span>€{total}</span>
+                          </div>
+                          <div className="flex justify-between text-slate-600 text-base mb-4 pb-4 border-b border-gray-200">
+                              <span className="underline">Service fee</span>
+                              <span>€0</span>
+                          </div>
+                          <div className="flex justify-between text-slate-900 font-bold text-lg">
+                              <span>Total</span>
+                              <span>€{total}</span>
+                          </div>
+                        </>
+                      )}
                  </div>
             </div>
         </div>
@@ -174,12 +302,20 @@ const ListingDetails: React.FC<ListingDetailsProps> = ({ listing, onClose }) => 
       
       {/* Mobile Sticky Footer */}
       <div className="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-4 px-6 flex justify-between items-center z-40 md:hidden safe-bottom pb-8">
-         <div>
+         <div className="flex flex-col">
             <p className="font-bold text-slate-900">€{listing.price}<span className="text-slate-500 font-normal"> /mo</span></p>
-            <p className="text-xs text-slate-500 underline">Available now</p>
+            {checkIn && checkOut ? (
+                <p className="text-xs text-slate-500 underline">{new Date(checkIn).toLocaleDateString()} - {new Date(checkOut).toLocaleDateString()}</p>
+            ) : (
+                <p className="text-xs text-slate-500 underline">Add dates for total</p>
+            )}
          </div>
-         <button className="bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg">
-             Reserve
+         <button 
+            onClick={handleReserve}
+            disabled={bookingStatus === 'processing'}
+            className="bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg"
+         >
+             {bookingStatus === 'processing' ? '...' : (!currentUser ? 'Log in' : 'Reserve')}
          </button>
       </div>
     </div>
