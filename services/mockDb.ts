@@ -1,36 +1,63 @@
 import { ApartmentSearchFilters, Listing, User, MaintenanceRequest, MaintenanceStatus, UserRole } from '../types';
 
+// Updated listings to match the bug report screenshots for proper testing
 let MOCK_LISTINGS: Listing[] = [
   {
     id: '1',
-    name: 'Modern Loft in City Center',
-    address: 'Grote Markt 12, Ieper',
-    price: 850,
+    name: 'Industrial Loft near Korenmarkt',
+    address: 'Korenmarkt 12, 9000 Ghent',
+    price: 950,
     imageUrls: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80'],
     energyClass: 'A',
-    type: 'apartment',
+    type: 'loft',
     size: 85,
-    description: 'Beautiful loft with high ceilings and view of the market square.',
+    description: 'Stunning open plan loft right in the historic center of Ghent.',
     bedrooms: 1,
     petsAllowed: false,
     ownerId: 'owner1'
   },
   {
     id: '2',
-    name: 'Spacious Family House',
-    address: 'Rijselstraat 45, Ieper',
-    price: 1200,
+    name: 'Classic Townhouse Oudburg',
+    address: 'Oudburg 24, 9000 Ghent',
+    price: 1450,
     imageUrls: ['https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=800&q=80'],
     energyClass: 'B',
     type: 'house',
-    size: 150,
-    description: 'Renovated family home with a small garden.',
+    size: 160,
+    description: 'Spacious family house in the culinary heart of Ghent with a courtyard.',
     bedrooms: 3,
     petsAllowed: true,
     ownerId: 'owner1'
   },
   {
     id: '3',
+    name: 'Modern Villa with Garden',
+    address: 'Veldstraat 45, 2060 Antwerp',
+    price: 1350,
+    imageUrls: ['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'],
+    energyClass: 'A',
+    type: 'house', // Displayed as House in screenshots, but looks like a villa
+    size: 160,
+    description: 'Modern detached home with large garden on the outskirts of Antwerp.',
+    bedrooms: 3,
+    petsAllowed: true
+  },
+  {
+    id: '4',
+    name: 'Luxury Apartment Sablon',
+    address: 'Rue de la Regence 36, 1000 Brussels',
+    price: 1800,
+    imageUrls: ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80'],
+    energyClass: 'C',
+    type: 'apartment',
+    size: 110,
+    description: 'High-end finish, parquet floors, and view of the conservatory.',
+    bedrooms: 2,
+    petsAllowed: false
+  },
+  {
+    id: '5',
     name: 'Cozy Studio near Station',
     address: 'Stationsstraat 8, Ieper',
     price: 550,
@@ -43,42 +70,16 @@ let MOCK_LISTINGS: Listing[] = [
     petsAllowed: false
   },
   {
-    id: '4',
-    name: 'Luxury Apartment with Terrace',
-    address: 'Boterstraat 36, Ieper',
-    price: 950,
-    imageUrls: ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80'],
-    energyClass: 'A+',
-    type: 'apartment',
-    size: 95,
-    description: 'Modern finishing, large terrace, underground parking included.',
-    bedrooms: 2,
-    petsAllowed: true
-  },
-  {
-    id: '5',
-    name: 'Historic Townhouse',
-    address: 'Menenstraat 20, Ieper',
-    price: 1100,
-    imageUrls: ['https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=800&q=80'],
-    energyClass: 'D',
-    type: 'house',
-    size: 130,
-    description: 'Charming authentic house. Needs some love but full of character.',
-    bedrooms: 3,
-    petsAllowed: true
-  },
-  {
     id: '6',
-    name: 'Budget 2-Bedroom',
-    address: 'Diksmuidseweg 100, Ieper',
-    price: 700,
-    imageUrls: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80'],
-    energyClass: 'C',
-    type: 'apartment',
-    size: 75,
-    description: 'Affordable apartment just outside the center. Features a cozy living area and basic amenities.',
-    bedrooms: 2,
+    name: 'Renovated Villa',
+    address: 'Kasteeldreef 5, 8000 Brugge',
+    price: 2100,
+    imageUrls: ['https://images.unsplash.com/photo-1600596542815-60c37c663d12?auto=format&fit=crop&w=800&q=80'],
+    energyClass: 'B',
+    type: 'villa',
+    size: 220,
+    description: 'Exclusive living in a green environment.',
+    bedrooms: 4,
     petsAllowed: true
   }
 ];
@@ -86,8 +87,9 @@ let MOCK_LISTINGS: Listing[] = [
 const MOCK_USERS: User[] = [
   { id: 'admin1', email: 'admin@eburon.ai', name: 'System Administrator', role: 'admin' },
   { id: 'contractor1', email: 'fixit@eburon.ai', name: 'Joe The Plumber', role: 'contractor' },
+  { id: 'broker1', email: 'broker@gmail.com', name: 'Broker Bob', role: 'broker' },
   { id: 'owner1', email: 'owner@eburon.ai', name: 'Landlord Larry', role: 'owner' },
-  { id: 'tenant1', email: 'tenant@eburon.ai', name: 'Jane Doe', role: 'tenant', rentedListingId: '1' },
+  { id: 'tenant1', email: 'tenant@gmail.com', name: 'Jane Doe', role: 'tenant', rentedListingId: '1' },
 ];
 
 let MOCK_MAINTENANCE_REQUESTS: MaintenanceRequest[] = [
@@ -221,6 +223,11 @@ export async function getMaintenanceRequests(role: UserRole, userId: string): Pr
 
   if (role === 'tenant') {
     return MOCK_MAINTENANCE_REQUESTS.filter(r => r.tenantId === userId);
+  }
+  
+  // Brokers see all for now (simple logic)
+  if (role === 'broker') {
+      return [...MOCK_MAINTENANCE_REQUESTS];
   }
 
   return [];

@@ -36,19 +36,43 @@ const updateFiltersTool: FunctionDeclaration = {
   parameters: {
     type: Type.OBJECT,
     properties: {
-      city: { type: Type.STRING, description: 'City name (e.g. Ieper)' },
+      city: { type: Type.STRING, description: 'City name (e.g. Ieper, Ghent, Antwerp)' },
       minPrice: { type: Type.NUMBER, description: 'Minimum price in Euros' },
       maxPrice: { type: Type.NUMBER, description: 'Maximum price in Euros' },
       minSize: { type: Type.NUMBER, description: 'Minimum size in square meters' },
       bedrooms: { type: Type.NUMBER, description: 'Number of bedrooms' },
       petsAllowed: { type: Type.BOOLEAN, description: 'Whether pets are required' },
-      type: { type: Type.STRING, enum: ['apartment', 'house', 'studio'], description: 'Type of property' },
+      type: { type: Type.STRING, enum: ['apartment', 'house', 'studio', 'villa', 'loft'], description: 'Type of property' },
       sortBy: { type: Type.STRING, enum: ["price_asc", "price_desc", "size", "default", "energy_asc", "energy_desc"] }
     },
   },
 };
 
 type PortalMode = 'public' | 'tenant' | 'management';
+
+// Bottom Nav Icon Component
+const NavIcon: React.FC<{ 
+    icon: React.ReactNode; 
+    label: string; 
+    active?: boolean;
+    onClick?: () => void;
+}> = ({ icon, label, active, onClick }) => (
+    <button 
+        onClick={onClick}
+        className={`flex flex-col items-center justify-center gap-1 w-full ${active ? 'text-rose-600' : 'text-slate-500 hover:text-slate-800'}`}
+    >
+        {icon}
+        <span className="text-[10px] font-medium">{label}</span>
+    </button>
+);
+
+const PROPERTY_TYPES = [
+    { id: 'apartment', label: 'Apartment', icon: <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" /></svg> },
+    { id: 'house', label: 'House', icon: <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg> },
+    { id: 'studio', label: 'Studio', icon: <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" /></svg> },
+    { id: 'villa', label: 'Villa', icon: <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-1.636M18.75 3l-1.5.545m0 6.205 3 1m1.5.5-1.5-.5M6.75 7.364V3h-3v18m3-13.636 10.5-3.819" /></svg> },
+    { id: 'loft', label: 'Loft', icon: <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" /></svg> },
+];
 
 const App: React.FC = () => {
   // --- Auth & Routing State ---
@@ -99,6 +123,12 @@ const App: React.FC = () => {
     } finally {
         setIsLoadingListings(false);
     }
+  };
+
+  const handleFilterChange = (updates: Partial<ApartmentSearchFilters>) => {
+      const newFilters = { ...filters, ...updates };
+      setFilters(newFilters);
+      loadListings(newFilters);
   };
 
   // --- Auth Logic ---
@@ -398,7 +428,7 @@ const App: React.FC = () => {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-grow flex flex-col pt-8 pb-32 relative max-w-[1800px] mx-auto w-full">
+      <main className="flex-grow flex flex-col pt-8 pb-32 md:pb-10 relative max-w-[1800px] mx-auto w-full mb-16 md:mb-0">
             <>
                 {/* Assistant Bubble */}
                 <div className="max-w-xl mx-auto mb-8 px-6 text-center sticky top-24 z-20 pointer-events-none">
@@ -427,22 +457,55 @@ const App: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Filters Row */}
-                <div className="flex gap-3 overflow-x-auto px-6 mb-6 pb-2 scrollbar-hide">
-                    {['Price', 'Type of place', 'Energy Class', 'Bedrooms', 'Amenities'].map((f, i) => (
-                         <button key={i} className="whitespace-nowrap px-4 py-2 rounded-full border border-gray-300 text-sm font-medium hover:border-black transition-colors bg-white">
-                             {f}
-                         </button>
-                    ))}
-                    <div className="border-l border-gray-300 mx-2 h-8 self-center"></div>
+                {/* Filters Row - Functional */}
+                <div className="flex gap-4 overflow-x-auto px-6 mb-6 pb-2 scrollbar-hide items-center">
+                    {PROPERTY_TYPES.map((pt) => {
+                        const isActive = filters.type === pt.id;
+                        return (
+                             <button 
+                                key={pt.id}
+                                onClick={() => handleFilterChange({ type: isActive ? null : pt.id })}
+                                className={`
+                                    whitespace-nowrap px-4 py-3 rounded-xl border flex flex-col items-center gap-2 min-w-[70px] transition-all
+                                    ${isActive 
+                                        ? 'border-black bg-slate-50 opacity-100 shadow-sm' 
+                                        : 'border-transparent opacity-60 hover:opacity-100 hover:bg-white'
+                                    }
+                                `}
+                             >
+                                 <div className={isActive ? 'text-black' : 'text-slate-500'}>
+                                    {pt.icon}
+                                 </div>
+                                 <span className={`text-xs font-medium ${isActive ? 'text-black font-bold' : 'text-slate-500'}`}>
+                                    {pt.label}
+                                 </span>
+                             </button>
+                        );
+                    })}
+                    
+                    <div className="border-l border-gray-300 mx-2 h-8"></div>
+                    
+                    {/* Pets Allowed Toggle */}
+                    <button 
+                        onClick={() => handleFilterChange({ petsAllowed: !filters.petsAllowed })}
+                        className={`
+                            whitespace-nowrap px-4 py-2 rounded-full border text-sm font-medium transition-colors flex items-center gap-2
+                            ${filters.petsAllowed 
+                                ? 'border-black bg-slate-900 text-white' 
+                                : 'border-gray-300 bg-white text-slate-700 hover:border-black'
+                            }
+                        `}
+                    >
+                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" />
+                        </svg>
+                        Pets Allowed
+                    </button>
+
                     <select
                         value={filters.sortBy || 'default'}
-                        onChange={(e) => {
-                            const newFilters = { ...filters, sortBy: e.target.value as any };
-                            setFilters(newFilters);
-                            loadListings(newFilters);
-                        }}
-                        className="text-sm font-medium text-slate-700 bg-transparent py-2 rounded-lg transition-colors border-none outline-none cursor-pointer hover:text-rose-600"
+                        onChange={(e) => handleFilterChange({ sortBy: e.target.value as any })}
+                        className="text-sm font-medium text-slate-700 bg-transparent py-2 rounded-lg transition-colors border-none outline-none cursor-pointer hover:text-rose-600 ml-auto"
                     >
                         <option value="default">Sort By</option>
                         <option value="price_asc">Price: Low to High</option>
@@ -453,10 +516,10 @@ const App: React.FC = () => {
                     </select>
                 </div>
 
-                {/* Listings Grid - Airbnb Style */}
+                {/* Listings Grid - Airbnb Style (2-col mobile, 4-col desktop) */}
                 <div className="px-6 w-full">
                     {isLoadingListings ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-6 md:gap-x-6 md:gap-y-10">
                             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
                                 <div key={i} className="flex flex-col gap-3 animate-pulse">
                                     <div className="aspect-square bg-slate-200 rounded-xl w-full"></div>
@@ -471,7 +534,7 @@ const App: React.FC = () => {
                             <p className="text-sm">Try changing your search filters.</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-6 md:gap-x-6 md:gap-y-10">
                             {listings.map(listing => (
                                 <ListingCard 
                                     key={listing.id} 
@@ -485,8 +548,34 @@ const App: React.FC = () => {
             </>
       </main>
 
-      {/* Floating Action Button for Mic */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-2">
+      {/* Mobile Bottom Navigation (5 Icons) */}
+      <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 z-50 md:hidden flex justify-around items-center py-2 pb-safe shadow-[0_-2px_10px_rgba(0,0,0,0.05)] h-[65px]">
+            <NavIcon 
+                active={true}
+                icon={<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>}
+                label="Explore" 
+            />
+            <NavIcon 
+                icon={<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>}
+                label="Wishlists" 
+            />
+             <NavIcon 
+                icon={<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" /></svg>}
+                label="Trips" 
+            />
+            <NavIcon 
+                icon={<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" /></svg>}
+                label="Inbox" 
+            />
+            <NavIcon 
+                icon={<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>}
+                label="Profile" 
+                onClick={() => setShowLogin(true)}
+            />
+      </div>
+
+      {/* Floating Action Button for Mic - Raised for Bottom Nav on Mobile */}
+      <div className="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-2">
             <button 
                 onClick={handleMicClick}
                 className={`
