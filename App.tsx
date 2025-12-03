@@ -64,7 +64,7 @@ const App: React.FC = () => {
   const [filters, setFilters] = useState<ApartmentSearchFilters>({ sortBy: 'default' });
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [userTranscript, setUserTranscript] = useState(''); 
-  const [assistantReply, setAssistantReply] = useState('Tap the mic to meet Homie!');
+  const [assistantReply, setAssistantReply] = useState('Tap the mic to start your search.');
   
   // Live API State
   const [isLiveActive, setIsLiveActive] = useState(false);
@@ -230,16 +230,17 @@ const App: React.FC = () => {
             tools: [{ functionDeclarations: [updateFiltersTool] }],
             systemInstruction: `
               You are 'Homie', a dynamic, funny, and helpful real estate agent.
-              You MUST speak first. Introduce yourself warmly immediately.
               
-              Persona:
+              YOUR GOAL:
+              - Help the user find an apartment by asking questions about location, price, and needs.
+              - When the user gives criteria, you MUST use the 'updateSearchFilters' tool.
+              - After using the tool, I will give you the number of listings found. You MUST report this number to the user verbally (e.g., "I found 3 apartments!").
+              
+              PERSONA:
               - Friendly, slightly chaotic but competent.
               - Use Flemish/Dutch flair in English (e.g., "Allez," "Right?", "Zeg").
               - Occasional *cough* "sorry" in your speech.
-              
-              Task:
-              - Help the user find an apartment by asking questions.
-              - Use the 'updateSearchFilters' tool when the user specifies criteria.
+              - Introduce yourself immediately upon connection.
             `,
             speechConfig: {
                 voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } }
@@ -252,10 +253,6 @@ const App: React.FC = () => {
       setConnectionStatus('connected');
       setIsLiveActive(true);
       setAssistantReply("Homie is listening...");
-
-      session.sendRealtimeInput({
-          content: [{ text: "Hello! Please introduce yourself to me." }]
-      });
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
@@ -365,57 +362,35 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans relative">
+    <div className="min-h-screen bg-white flex flex-col font-sans relative">
       
       {/* Top Bar (Public) */}
-      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 py-4 flex justify-between items-center transition-all">
+      <header className="sticky top-0 z-30 bg-white border-b border-gray-100 px-6 py-4 flex justify-between items-center transition-all shadow-sm">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => {}}>
-            <div className="bg-indigo-600 p-2 rounded-xl text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+            <div className="bg-rose-500 p-2 rounded-full text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
                 </svg>
             </div>
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">Homie<span className="text-indigo-600">Search</span></h1>
+            <h1 className="text-xl font-bold text-rose-500 tracking-tight hidden sm:block">Homie<span className="text-slate-900">Search</span></h1>
+        </div>
+
+        {/* Search Bar (Mock functionality for now in header, real action in footer) */}
+        <div className="hidden md:flex items-center border border-gray-300 rounded-full shadow-sm hover:shadow-md transition-shadow px-4 py-2 gap-4 divide-x divide-gray-300 cursor-pointer">
+             <span className="text-sm font-medium text-slate-900 pl-2">Anywhere</span>
+             <span className="text-sm font-medium text-slate-900 pl-4">Any week</span>
+             <span className="text-sm text-slate-500 pl-4 pr-2">Add guests</span>
+             <div className="bg-rose-500 rounded-full p-2 text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+             </div>
         </div>
 
         <div className="flex items-center gap-4">
-             {/* Public Filters */}
-             <div className="flex items-center gap-3 hidden md:flex">
-                <select
-                    value={filters.sortBy || 'default'}
-                    onChange={(e) => {
-                        const newFilters = { ...filters, sortBy: e.target.value as any };
-                        setFilters(newFilters);
-                        loadListings(newFilters);
-                    }}
-                    className="text-sm font-medium text-slate-700 bg-slate-100 px-3 py-2 rounded-lg hover:bg-slate-200 transition-colors border-none outline-none cursor-pointer"
-                >
-                    <option value="default">Sort By</option>
-                    <option value="price_asc">Price: Low to High</option>
-                    <option value="price_desc">Price: High to Low</option>
-                    <option value="size">Size: Large to Small</option>
-                    <option value="energy_asc">Energy: Efficient First</option>
-                    <option value="energy_desc">Energy: Least Efficient</option>
-                </select>
-
-                <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700 bg-slate-100 px-3 py-2 rounded-lg hover:bg-slate-200 transition-colors select-none">
-                    <input 
-                        type="checkbox" 
-                        checked={filters.petsAllowed === true} 
-                        onChange={(e) => {
-                            const newFilters = { ...filters, petsAllowed: e.target.checked ? true : undefined };
-                            setFilters(newFilters);
-                            loadListings(newFilters);
-                        }}
-                        className="w-4 h-4 accent-indigo-600 rounded focus:ring-indigo-500 border-gray-300"
-                    />
-                    <span>Pets</span>
-                </label>
-            </div>
-            
             <button 
                 onClick={() => setShowLogin(true)}
-                className="text-sm font-semibold text-slate-600 hover:text-indigo-600"
+                className="text-sm font-semibold text-slate-600 hover:bg-slate-50 px-4 py-2 rounded-full transition-colors"
             >
                 Log in
             </button>
@@ -423,29 +398,28 @@ const App: React.FC = () => {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-grow flex flex-col justify-center py-8 relative">
+      <main className="flex-grow flex flex-col pt-8 pb-32 relative max-w-[1800px] mx-auto w-full">
             <>
                 {/* Assistant Bubble */}
-                <div className="max-w-xl mx-auto mb-8 px-6 text-center">
+                <div className="max-w-xl mx-auto mb-8 px-6 text-center sticky top-24 z-20 pointer-events-none">
                     <div className={`
-                        inline-block bg-white border shadow-sm rounded-2xl rounded-bl-none px-6 py-4 text-slate-700 text-lg leading-relaxed animate-fade-in relative overflow-hidden transition-all duration-300
-                        ${isLiveActive ? 'border-indigo-400 shadow-indigo-100 scale-105' : 'border-indigo-100'}
+                        inline-block bg-white/95 backdrop-blur-md border shadow-lg rounded-full px-8 py-3 text-slate-700 text-lg font-medium animate-fade-in relative overflow-hidden transition-all duration-300 pointer-events-auto
+                        ${isLiveActive ? 'border-rose-400 shadow-rose-100 scale-105 ring-4 ring-rose-50' : 'border-slate-200'}
                     `}>
                         {isLiveActive ? (
-                        <div className="flex flex-col items-center min-w-[200px]">
-                            <div className="flex items-center justify-center gap-1.5 h-8 mb-2">
-                                {[...Array(5)].map((_, i) => (
+                        <div className="flex items-center gap-3">
+                             <div className="flex items-center justify-center gap-1 h-6">
+                                {[...Array(4)].map((_, i) => (
                                     <div 
                                         key={i} 
-                                        className="w-1.5 bg-indigo-500 rounded-full transition-all duration-75"
+                                        className="w-1 bg-rose-500 rounded-full transition-all duration-75"
                                         style={{ 
-                                            height: `${Math.max(20, Math.min(100, Math.random() * 40 + volume * 200))}%`,
-                                            opacity: 0.5 + (volume * 0.5)
+                                            height: `${Math.max(10, Math.min(100, Math.random() * 60 + volume * 200))}%`,
                                         }}
                                     ></div>
                                 ))}
                             </div>
-                            <p className="text-indigo-600 font-medium text-sm animate-pulse">{assistantReply}</p>
+                            <p className="text-rose-600 font-medium text-sm animate-pulse whitespace-nowrap">{assistantReply}</p>
                         </div>
                         ) : (
                             assistantReply
@@ -453,26 +427,51 @@ const App: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Listings Carousel */}
-                <div className="w-full overflow-x-auto pb-12 pt-4 px-6 snap-x snap-mandatory scrollbar-hide">
+                {/* Filters Row */}
+                <div className="flex gap-3 overflow-x-auto px-6 mb-6 pb-2 scrollbar-hide">
+                    {['Price', 'Type of place', 'Energy Class', 'Bedrooms', 'Amenities'].map((f, i) => (
+                         <button key={i} className="whitespace-nowrap px-4 py-2 rounded-full border border-gray-300 text-sm font-medium hover:border-black transition-colors bg-white">
+                             {f}
+                         </button>
+                    ))}
+                    <div className="border-l border-gray-300 mx-2 h-8 self-center"></div>
+                    <select
+                        value={filters.sortBy || 'default'}
+                        onChange={(e) => {
+                            const newFilters = { ...filters, sortBy: e.target.value as any };
+                            setFilters(newFilters);
+                            loadListings(newFilters);
+                        }}
+                        className="text-sm font-medium text-slate-700 bg-transparent py-2 rounded-lg transition-colors border-none outline-none cursor-pointer hover:text-rose-600"
+                    >
+                        <option value="default">Sort By</option>
+                        <option value="price_asc">Price: Low to High</option>
+                        <option value="price_desc">Price: High to Low</option>
+                        <option value="size">Size: Large to Small</option>
+                        <option value="energy_asc">Energy: Efficient First</option>
+                        <option value="energy_desc">Energy: Least Efficient</option>
+                    </select>
+                </div>
+
+                {/* Listings Grid - Airbnb Style */}
+                <div className="px-6 w-full">
                     {isLoadingListings ? (
-                        <div className="flex gap-6 w-max mx-auto px-4">
-                            {[1, 2, 3].map((i) => (
-                                <div key={i} className="flex-shrink-0 w-80 bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100 h-[340px] animate-pulse">
-                                    <div className="h-48 bg-slate-200 w-full"></div>
-                                    <div className="p-4 space-y-3">
-                                        <div className="h-4 bg-slate-200 rounded w-3/4"></div>
-                                        <div className="h-3 bg-slate-200 rounded w-1/2"></div>
-                                    </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
+                            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                                <div key={i} className="flex flex-col gap-3 animate-pulse">
+                                    <div className="aspect-square bg-slate-200 rounded-xl w-full"></div>
+                                    <div className="h-4 bg-slate-200 rounded w-2/3"></div>
+                                    <div className="h-3 bg-slate-200 rounded w-1/2"></div>
                                 </div>
                             ))}
                         </div>
                     ) : listings.length === 0 ? (
                         <div className="text-center text-slate-400 py-12">
-                            <p>No listings found. Try adjusting your search.</p>
+                            <p className="text-lg">No homes found in this area.</p>
+                            <p className="text-sm">Try changing your search filters.</p>
                         </div>
                     ) : (
-                        <div className="flex gap-6 w-max mx-auto px-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
                             {listings.map(listing => (
                                 <ListingCard 
                                     key={listing.id} 
@@ -486,67 +485,46 @@ const App: React.FC = () => {
             </>
       </main>
 
-      {/* Bottom Control Bar */}
-      <div className="sticky bottom-0 bg-white/90 backdrop-blur-xl border-t border-slate-200 pb-8 pt-4 px-4 z-30">
-        <div className="max-w-2xl mx-auto flex items-center gap-4">
-            <form onSubmit={handleTextSearch} className="flex-grow relative group">
-                <input 
-                    type="text" 
-                    value={userTranscript}
-                    onChange={(e) => setUserTranscript(e.target.value)}
-                    placeholder={isLiveActive ? "Listening..." : "Type or tap the mic..."}
-                    disabled={isLiveActive}
-                    className="w-full bg-slate-100 text-slate-900 placeholder:text-slate-500 rounded-full py-4 pl-6 pr-12 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm disabled:opacity-50"
-                />
-                <button type="submit" disabled={isLiveActive} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-white rounded-full shadow-sm text-indigo-600 opacity-0 group-focus-within:opacity-100 transition-opacity">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                    </svg>
-                </button>
-            </form>
-
+      {/* Floating Action Button for Mic */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-2">
             <button 
                 onClick={handleMicClick}
                 className={`
-                    relative flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 z-10
+                    relative w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 shadow-xl
                     ${isLiveActive 
-                        ? 'bg-white border-4 border-red-500 shadow-xl scale-110' 
-                        : 'bg-indigo-600 shadow-indigo-500/30 hover:bg-indigo-700 shadow-lg hover:scale-105'
+                        ? 'bg-slate-900 scale-110' 
+                        : 'bg-rose-500 hover:bg-rose-600 hover:scale-105'
                     }
-                    ${connectionStatus === 'connecting' ? 'animate-pulse cursor-wait' : ''}
                 `}
             >
-                {isLiveActive && (
-                    <>
-                        <span className="absolute inset-0 rounded-full border-2 border-red-400 opacity-70 animate-ping"></span>
-                        <span 
-                            className="absolute inset-0 rounded-full border-4 border-red-200 opacity-50 transition-transform duration-100 ease-out"
-                            style={{ transform: `scale(${1 + volume * 1.5})` }}
-                        ></span>
-                    </>
-                )}
-
                 {isLiveActive ? (
-                    <div className="w-5 h-5 bg-red-500 rounded-sm relative z-20"></div>
+                    <div className="flex gap-1 items-end h-6">
+                         {[...Array(3)].map((_, i) => (
+                            <div 
+                                key={i} 
+                                className="w-1 bg-white rounded-full animate-bounce" 
+                                style={{ animationDelay: `${i * 0.1}s`, height: '100%' }}
+                            ></div>
+                        ))}
+                    </div>
                 ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-white relative z-20">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-8 h-8 text-white">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
                     </svg>
                 )}
             </button>
-        </div>
-        <p className="text-center text-xs text-slate-400 mt-2 font-medium">
-            {connectionStatus === 'connecting' ? 'Connecting to Homie...' : isLiveActive ? 'Tap to Stop' : 'Tap for Live Agent'}
-        </p>
+            <span className="bg-slate-900 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg opacity-90">
+                 {isLiveActive ? 'Tap to Stop' : 'Ask Homie'}
+            </span>
       </div>
 
       {/* Login Modal */}
       {showLogin && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
               <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
-                  <div className="bg-slate-900 p-6 text-white text-center">
+                  <div className="bg-rose-500 p-6 text-white text-center">
                       <h2 className="text-xl font-bold">Portal Login</h2>
-                      <p className="text-slate-400 text-sm">Access your Eburon account</p>
+                      <p className="text-rose-100 text-sm">Access your Eburon account</p>
                   </div>
                   <form onSubmit={handleLogin} className="p-6 space-y-4">
                       <div>
@@ -554,7 +532,7 @@ const App: React.FC = () => {
                           <input 
                               type="email" 
                               required 
-                              className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-indigo-500" 
+                              className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-rose-500" 
                               placeholder="name@eburon.ai"
                               value={loginEmail}
                               onChange={e => setLoginEmail(e.target.value)}
@@ -563,7 +541,7 @@ const App: React.FC = () => {
                       <button 
                           type="submit" 
                           disabled={loginLoading}
-                          className="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                          className="w-full bg-rose-600 text-white py-3 rounded-lg font-bold hover:bg-rose-700 transition-colors disabled:opacity-50"
                       >
                           {loginLoading ? 'Checking...' : 'Enter Portal'}
                       </button>

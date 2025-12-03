@@ -9,13 +9,16 @@ interface ListingCardProps {
 const ListingCard: React.FC<ListingCardProps> = ({ listing, onClick }) => {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
+  // Mock rating generation based on ID
+  const rating = (4 + (parseInt(listing.id) % 10) / 10).toFixed(2);
+
   return (
     <div 
       onClick={() => onClick && onClick(listing)}
-      className="flex-shrink-0 w-80 bg-white rounded-2xl shadow-lg overflow-hidden border border-slate-100 hover:shadow-xl transition-all duration-300 snap-start cursor-pointer hover:scale-[1.02] active:scale-95 group"
+      className="group cursor-pointer flex flex-col gap-2 w-full"
     >
-      <div className="relative h-48 w-full bg-slate-200 overflow-hidden">
-        {/* Skeleton for Image */}
+      <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-slate-200">
+         {/* Skeleton */}
         <div className={`absolute inset-0 bg-slate-200 animate-pulse z-0 ${isImageLoaded ? 'hidden' : 'block'}`} />
         
         <img 
@@ -23,49 +26,41 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onClick }) => {
           alt={listing.name} 
           loading="lazy"
           onLoad={() => setIsImageLoaded(true)}
-          className={`w-full h-full object-cover transition-opacity duration-500 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+          className={`h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
         />
-        
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-xs font-bold text-slate-900 shadow-sm z-10">
-          €{listing.price}/mo
-        </div>
-        <div className="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-sm px-2 py-1 rounded-lg text-xs font-medium text-white shadow-sm z-10">
-          {listing.type}
-        </div>
-      </div>
-      
-      <div className="p-4">
-        <div className="flex justify-between items-start mb-2">
-           <h3 className="font-bold text-slate-900 leading-tight line-clamp-1 group-hover:text-indigo-600 transition-colors">{listing.name}</h3>
-        </div>
-        
-        <div className="flex items-center text-slate-500 text-sm mb-3">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 mr-1 text-slate-400">
-            <path fillRule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.625a19.08 19.08 0 002.274 1.765c.311.193.571.337.757.433.092.047.186.094.281.14l.018.008.006.003.002.001zM10 11.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" clipRule="evenodd" />
+
+        {/* Heart Icon */}
+        <button className="absolute top-3 right-3 z-10 text-white/70 hover:scale-110 transition-transform active:scale-95">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 stroke-white stroke-2 fill-black/50">
+            <path d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z" />
           </svg>
-          <span className="truncate">{listing.address}</span>
+        </button>
+        
+        {/* Guest Favorite Badge Mock */}
+        {listing.energyClass === 'A+' && (
+             <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2 py-1 rounded-md text-xs font-bold text-slate-900 shadow-sm z-10">
+                Guest favorite
+             </div>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-0.5">
+        <div className="flex justify-between items-start">
+            <h3 className="font-semibold text-slate-900 truncate text-[15px]">{listing.address.split(',')[0]}</h3>
+            <div className="flex items-center gap-1 text-sm font-light text-slate-800">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3 text-slate-900">
+                    <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" />
+                </svg>
+                {rating}
+            </div>
         </div>
         
-        <div className="flex items-center gap-3 text-xs font-medium text-slate-600 border-t border-slate-100 pt-3">
-          <div className="flex items-center gap-1">
-             <span className="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">{listing.size} m²</span>
-          </div>
-          <div className="flex items-center gap-1">
-             <span className="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded">{listing.bedrooms} Beds</span>
-          </div>
-          {listing.petsAllowed && (
-             <div className="flex items-center gap-1">
-                <span className="bg-pink-50 text-pink-700 px-1.5 py-0.5 rounded flex items-center gap-1" title="Pets Allowed">
-                    🐾 Pets
-                </span>
-             </div>
-          )}
-          <div className="flex items-center gap-1 ml-auto">
-             <span className={`px-2 py-0.5 rounded border ${listing.energyClass === 'A' || listing.energyClass === 'A+' ? 'border-green-200 bg-green-50 text-green-700' : 'border-slate-200 bg-slate-50 text-slate-600'}`}>
-                EPC {listing.energyClass}
-             </span>
-          </div>
+        <p className="text-[15px] text-slate-500 font-light truncate">Hosted by Eburon</p>
+        <p className="text-[15px] text-slate-500 font-light truncate">{listing.size} m² • {listing.bedrooms} beds</p>
+        
+        <div className="mt-1 flex items-baseline gap-1">
+             <span className="font-semibold text-slate-900 text-[15px]">€{listing.price}</span>
+             <span className="text-slate-500 font-light text-[15px]">month</span>
         </div>
       </div>
     </div>
