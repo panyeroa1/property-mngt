@@ -81,9 +81,6 @@ const App: React.FC = () => {
   // --- Auth & Routing State ---
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [currentMode, setCurrentMode] = useState<PortalMode>('public');
-  const [showLogin, setShowLogin] = useState(false);
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginLoading, setLoginLoading] = useState(false);
 
   // --- Public Search State ---
   const [listings, setListings] = useState<Listing[]>([]);
@@ -135,25 +132,8 @@ const App: React.FC = () => {
   };
 
   // --- Auth Logic ---
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoginLoading(true);
-    try {
-        const user = await authenticateUser(loginEmail);
-        if (user) {
-            setCurrentUser(user);
-            setShowLogin(false);
-            if (user.role === 'tenant') {
-                setCurrentMode('tenant');
-            } else {
-                setCurrentMode('management');
-            }
-        } else {
-            alert('User not found. Try admin@eburon.ai, fixit@eburon.ai, owner@eburon.ai, or tenant@eburon.ai');
-        }
-    } finally {
-        setLoginLoading(false);
-    }
+  const handleLogin = () => {
+     window.location.href = 'https://property.eburon.ai/admin';
   };
 
   const handleLogout = () => {
@@ -422,7 +402,7 @@ const App: React.FC = () => {
 
         <div className="flex items-center gap-4">
             <button 
-                onClick={() => setShowLogin(true)}
+                onClick={handleLogin}
                 className="text-sm font-semibold text-slate-600 hover:bg-slate-50 px-4 py-2 rounded-full transition-colors"
             >
                 {currentUser ? currentUser.name : 'Log in'}
@@ -573,7 +553,7 @@ const App: React.FC = () => {
             <NavIcon 
                 icon={<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>}
                 label="Profile" 
-                onClick={() => setShowLogin(true)}
+                onClick={handleLogin}
             />
       </div>
 
@@ -610,47 +590,11 @@ const App: React.FC = () => {
             </span>
       </div>
 
-      {/* Login Modal */}
-      {showLogin && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
-                  <div className="bg-rose-500 p-6 text-white text-center">
-                      <h2 className="text-xl font-bold">Portal Login</h2>
-                      <p className="text-rose-100 text-sm">Access your Eburon account</p>
-                  </div>
-                  <form onSubmit={handleLogin} className="p-6 space-y-4">
-                      <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-                          <input 
-                              type="email" 
-                              required 
-                              className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-rose-500" 
-                              placeholder="name@eburon.ai"
-                              value={loginEmail}
-                              onChange={e => setLoginEmail(e.target.value)}
-                          />
-                      </div>
-                      <button 
-                          type="submit" 
-                          disabled={loginLoading}
-                          className="w-full bg-rose-600 text-white py-3 rounded-lg font-bold hover:bg-rose-700 transition-colors disabled:opacity-50"
-                      >
-                          {loginLoading ? 'Checking...' : 'Enter Portal'}
-                      </button>
-                      <button type="button" onClick={() => setShowLogin(false)} className="w-full text-slate-500 text-sm py-2">Cancel</button>
-                  </form>
-                  <div className="bg-slate-50 p-4 text-xs text-slate-400 text-center">
-                      Try: <strong>admin@eburon.ai</strong>, <strong>fixit@eburon.ai</strong>, <strong>tenant@eburon.ai</strong>
-                  </div>
-              </div>
-          </div>
-      )}
-      
       {selectedListing && (
           <ListingDetails 
               listing={selectedListing} 
               currentUser={currentUser}
-              onLoginRequest={() => setShowLogin(true)}
+              onLoginRequest={handleLogin}
               onClose={() => setSelectedListing(null)} 
           />
       )}

@@ -58,6 +58,18 @@ export interface User {
   rentedListingId?: string; // If tenant
 }
 
+export interface Reservation {
+  id?: string;
+  listing_id: string;
+  user_id: string;
+  check_in: string;
+  check_out: string;
+  guests: number;
+  total_price: number;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  created_at?: string;
+}
+
 export type MaintenanceStatus = 'open' | 'pending' | 'resolved';
 
 export interface MaintenanceRequest {

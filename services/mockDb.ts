@@ -1,6 +1,13 @@
-import { ApartmentSearchFilters, Listing, User, MaintenanceRequest, MaintenanceStatus, UserRole } from '../types';
+import { createClient } from '@supabase/supabase-js';
+import { ApartmentSearchFilters, Listing, User, MaintenanceRequest, MaintenanceStatus, UserRole, Reservation } from '../types';
 
-// Updated listings with realistic Belgian data, new categories, and multiple images
+// --- Supabase Config ---
+const SUPABASE_URL = 'https://mkmyfdqrejabgnymfmbb.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rbXlmZHFyZWphYmdueW1mbWJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0MzMxMzYsImV4cCI6MjA4MDAwOTEzNn0.x_1VnQ-HWWPwNe9jjafhD_uoH2dyCyjO2RaKOQhYoJw';
+
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// --- Mock Data Fallback ---
 let MOCK_LISTINGS: Listing[] = [
   {
     id: '1',
@@ -293,8 +300,30 @@ function getEnergyScore(energyClass: string): number {
 // --- Listings ---
 
 export async function searchListings(filters: ApartmentSearchFilters): Promise<Listing[]> {
-  await new Promise(resolve => setTimeout(resolve, 300)); // Lower latency for snappy feel
+  // Try Supabase first
+  try {
+      let query = supabase.from('listings').select('*');
+      
+      if (filters.city) query = query.ilike('address', `%${filters.city}%`);
+      if (filters.minPrice) query = query.gte('price', filters.minPrice);
+      if (filters.maxPrice) query = query.lte('price', filters.maxPrice);
+      if (filters.type) query = query.ilike('type', filters.type);
+      
+      const { data, error } = await query;
+      
+      if (!error && data && data.length > 0) {
+          // Add default images if missing (since real DB might have empty arrays)
+          return data.map((d: any) => ({
+             ...d,
+             imageUrls: d.imageUrls?.length ? d.imageUrls : MOCK_LISTINGS[0].imageUrls
+          }));
+      }
+  } catch(e) {
+      console.warn("Supabase fetch failed, falling back to mock", e);
+  }
 
+  // Fallback to Mock
+  await new Promise(resolve => setTimeout(resolve, 300));
   let results = [...MOCK_LISTINGS];
 
   if (filters.city) {
@@ -326,14 +355,33 @@ export async function searchListings(filters: ApartmentSearchFilters): Promise<L
   } else if (filters.sortBy === 'size') {
     results.sort((a, b) => b.size - a.size);
   } else if (filters.sortBy === 'energy_asc') {
-    // Best (A+) to Worst (F)
     results.sort((a, b) => getEnergyScore(a.energyClass) - getEnergyScore(b.energyClass));
   } else if (filters.sortBy === 'energy_desc') {
-    // Worst (F) to Best (A+)
     results.sort((a, b) => getEnergyScore(b.energyClass) - getEnergyScore(a.energyClass));
   }
 
   return results;
+}
+
+export async function createReservation(res: Omit<Reservation, 'id' | 'status'>): Promise<Reservation | null> {
+    try {
+        const { data, error } = await supabase.from('reservations').insert([{
+            listing_id: res.listing_id,
+            user_id: res.user_id,
+            check_in: res.check_in,
+            check_out: res.check_out,
+            guests: res.guests,
+            total_price: res.total_price,
+            status: 'pending'
+        }]).select().single();
+        
+        if (error) throw error;
+        return data;
+    } catch (err) {
+        console.error("Supabase reservation failed:", err);
+        // Fallback for demo
+        return { ...res, id: 'mock-res-' + Date.now(), status: 'pending' };
+    }
 }
 
 export async function createListing(listing: Omit<Listing, 'id'>): Promise<Listing> {
@@ -371,12 +419,10 @@ export async function getMaintenanceRequests(role: UserRole, userId: string): Pr
   if (role === 'admin') return [...MOCK_MAINTENANCE_REQUESTS];
   
   if (role === 'contractor') {
-    // Contractors see open requests or assigned to them
     return MOCK_MAINTENANCE_REQUESTS.filter(r => r.assignedTo === userId || r.status === 'open');
   }
   
   if (role === 'owner') {
-     // Owners see requests for their properties
      const myListingIds = MOCK_LISTINGS.filter(l => l.ownerId === userId).map(l => l.id);
      return MOCK_MAINTENANCE_REQUESTS.filter(r => myListingIds.includes(r.listingId));
   }
@@ -385,7 +431,6 @@ export async function getMaintenanceRequests(role: UserRole, userId: string): Pr
     return MOCK_MAINTENANCE_REQUESTS.filter(r => r.tenantId === userId);
   }
   
-  // Brokers see all for now (simple logic)
   if (role === 'broker') {
       return [...MOCK_MAINTENANCE_REQUESTS];
   }
