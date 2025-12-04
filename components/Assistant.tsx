@@ -75,7 +75,7 @@ const Assistant: React.FC = () => {
         <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
             <div>
                 <h3 className="font-bold text-slate-800">Job Assistant</h3>
-                <p className="text-xs text-slate-500">Powered by Gemini Flash • Search & Maps Enabled</p>
+                <p className="text-xs text-slate-500"></p>
             </div>
             {tip && (
                 <div className="hidden md:block text-xs bg-yellow-50 text-yellow-800 px-3 py-1 rounded-full border border-yellow-100 max-w-xs truncate">
