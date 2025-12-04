@@ -558,47 +558,26 @@ const App: React.FC = () => {
              </div>
           )}
 
-          <div className="relative flex items-center justify-center w-16 h-16">
-              {/* Idle Pulse / Active Ripple */}
-              <div className={`
-                 absolute inset-0 rounded-full opacity-30
-                 bg-gradient-to-tr from-rose-400 to-fuchsia-500
-                 ${isLiveActive ? 'animate-none' : 'animate-ping'}
-              `} style={{
-                  transform: isLiveActive ? `scale(${1 + volume * 2})` : 'scale(1)'
-              }}></div>
+          <div className="relative flex items-center justify-center w-[60px] h-[60px]">
               
               {/* Connecting Ring */}
               {connectionStatus === 'connecting' && (
-                  <div className="absolute inset-[-4px] rounded-full border-2 border-rose-500 border-dashed animate-spin"></div>
+                  <div className="absolute inset-[-4px] rounded-full border-2 border-cyan-400 border-dashed animate-spin"></div>
               )}
 
-              {/* Core Orb */}
-              <div className={`
-                 w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300
-                 bg-gradient-to-br from-rose-500 to-fuchsia-600 border border-white/20
-                 ${isLiveActive ? 'scale-110' : 'hover:scale-105'}
-              `}>
-                  {isLiveActive ? (
-                      // Visualizer Waveform
-                      <div className="flex items-center justify-center gap-1 h-8">
-                           {[...Array(4)].map((_, i) => (
-                               <div 
-                                   key={i} 
-                                   className="w-1.5 bg-white rounded-full transition-all duration-75"
-                                   style={{ 
-                                       height: `${Math.max(20, Math.min(100, Math.random() * 40 + volume * 200))}%`,
-                                   }}
-                               ></div>
-                           ))}
-                      </div>
-                  ) : (
-                      // Idle Mic Icon
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-8 h-8 text-white">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
-                      </svg>
-                  )}
-              </div>
+              {/* Image Orb */}
+              <img 
+                  src="https://cdnb.artstation.com/p/assets/images/images/044/950/613/original/cas-mysterious-orb.gif?1641561498"
+                  alt="Homie Orb"
+                  className={`
+                     w-full h-full rounded-full object-cover shadow-2xl transition-transform duration-100 ease-out
+                     ${!isLiveActive ? 'hover:scale-105' : ''}
+                  `}
+                  style={{
+                      transform: isLiveActive ? `scale(${1 + volume * 0.5})` : 'scale(1)'
+                  }}
+                  draggable={false} // Prevent native drag of image
+              />
           </div>
       </div>
 
