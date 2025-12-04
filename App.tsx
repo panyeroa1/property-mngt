@@ -159,7 +159,7 @@ const App: React.FC = () => {
 
   // --- Auth Logic ---
   const handleLogin = () => {
-     window.location.href = 'https://property.eburon.ai/admin';
+     window.location.href = 'https://admin.eburon.ai/';
   };
 
   const handleLogout = () => {
